@@ -1,0 +1,414 @@
+<!doctype html>
+<html lang="id">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Absensi Salat - SMA Unggul Islam Al-Fahd</title>
+
+  <style>
+    :root{
+      --blue:#aed9ff;
+      --blue-2:#bfe9ff;
+      --white:#ffffff;
+      --dark:#153243;
+      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    }
+    body{
+      margin:0;
+      background: linear-gradient(180deg,var(--blue) 0%, #f7fdff 100%);
+      color:var(--dark);
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:16px;
+    }
+    .container{
+      width:100%;
+      max-width:1000px;
+      background:var(--white);
+      border-radius:18px;
+      box-shadow:0 8px 28px rgba(0,0,0,0.08);
+      overflow:hidden;
+      display:grid;
+      grid-template-columns: 1fr 380px;
+    }
+    header{
+      padding:16px 18px;
+      display:flex;
+      align-items:center;
+      gap:12px;
+      border-bottom:1px solid rgba(0,0,0,0.04);
+    }
+    header img.logo{
+      width:56px;
+      height:56px;
+      object-fit:contain;
+      border-radius:8px;
+      background:var(--white);
+      padding:6px;
+    }
+    header h1{ font-size:18px; margin:0; }
+    main.left{ padding:18px; }
+    .panel{
+      background: linear-gradient(180deg, rgba(174,217,255,0.12), rgba(191,233,255,0.06));
+      padding:12px;
+      border-radius:12px;
+      margin-bottom:12px;
+    }
+    .panel h2{ margin:6px 0 12px 0; font-size:16px }
+    .btn{
+      display:inline-block;
+      padding:10px 14px;
+      border-radius:10px;
+      background:var(--dark);
+      color:var(--white);
+      text-decoration:none;
+      cursor:pointer;
+      border:none;
+      font-weight:600;
+    }
+    .btn.secondary{
+      background:transparent;
+      color:var(--dark);
+      border:1px solid rgba(0,0,0,0.08);
+    }
+    .right{ padding:18px; border-left:1px solid rgba(0,0,0,0.04); background: linear-gradient(180deg, #ffffff, #f4fbff); }
+    .small{ font-size:13px; color:rgba(0,0,0,0.6) }
+    .qr-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
+    .qr-item{ background:rgba(0,0,0,0.02); padding:8px; border-radius:10px; text-align:center; }
+    @media (max-width:900px){
+      .container{ grid-template-columns: 1fr; }
+      .right{ order:2; border-left:0; border-top:1px solid rgba(0,0,0,0.04); }
+    }
+    .overlay{
+      position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
+      background:rgba(0,0,0,0.25); z-index:9999; visibility:hidden; opacity:0; transition:all 180ms ease;
+    }
+    .overlay.show{ visibility:visible; opacity:1; }
+    .card{ background:var(--white); border-radius:12px; padding:18px 22px; box-shadow:0 12px 40px rgba(0,0,0,0.12); text-align:center; min-width:260px; }
+    .crescent{ width:64px; height:64px; display:inline-block; border-radius:50%; background: radial-gradient(circle at 30% 30%, rgba(0,0,0,0.06), transparent 40%), var(--blue-2); margin-bottom:10px; }
+    #reader { width:100%; min-height:320px; border-radius:10px; overflow:hidden; background: #000; display:flex; align-items:center; justify-content:center; color:white; }
+    #reader video{ width:100%; height:100%; object-fit:cover; }
+  </style>
+
+  <!-- Libraries -->
+  <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+</head>
+<body>
+  <div class="container" role="application">
+    <div>
+      <header>
+        <img src="cropped-logo-sma-unggul-alfahd.png" alt="Logo" class="logo" />
+        <div>
+          <h1>SMA Unggul Islam Al-Fahd — Absensi Salat</h1>
+          <div class="small">Scanner QR untuk guru • Admin panel untuk mengelola & membuat QR siswa</div>
+        </div>
+      </header>
+
+      <main class="left">
+        <div class="panel">
+          <h2>Scanner QR (Guru)</h2>
+
+          <label class="small">Pilih Jenis Salat:</label>
+          <select id="jenis-salat" style="width:100%; padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); margin-bottom:8px;">
+            <option value="Subuh">Subuh</option>
+            <option value="Dzuhur">Dzuhur</option>
+            <option value="Ashar">Ashar</option>
+            <option value="Maghrib">Maghrib</option>
+            <option value="Isya">Isya</option>
+          </select>
+
+          <div id="reader">Klik "Mulai Scan" untuk membuka kamera</div>
+          <div style="margin-top:10px;">
+            <button id="start-scan" class="btn">Mulai Scan</button>
+            <button id="stop-scan" class="btn secondary">Stop</button>
+            <span class="small" style="margin-left:12px;">Pilih kamera jika perlu pada prompt browser.</span>
+          </div>
+        </div>
+
+        <div class="panel">
+          <h2>Riwayat local (sementara)</h2>
+          <div id="local-log" class="small">Belum ada absensi lokal</div>
+        </div>
+      </main>
+    </div>
+
+    <aside class="right">
+      <div class="panel">
+        <h2>Admin — Daftar Siswa & QR</h2>
+        <div class="small">Daftar siswa otomatis tersedia di sini. Anda dapat mendownload QR per siswa.</div>
+        <div style="margin-top:10px;">
+          <div id="qr-list" class="qr-grid"></div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <h2>Konfigurasi</h2>
+        <div class="small">URL Google Apps Script (endpoint)</div>
+        <input id="gas-url" type="url" placeholder="https://script.google.com/macros/s/XXXXX/exec" style="width:100%; padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); margin-top:6px" />
+        <div class="small" style="margin-top:8px">Base link untuk QR (opsional). Default: halaman ini</div>
+        <input id="base-link" type="url" placeholder="Biarkan kosong untuk pakai halaman ini" style="width:100%; padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); margin-top:6px" />
+        <div style="margin-top:10px; display:flex; gap:8px;">
+          <button id="save-config" class="btn">Simpan Konfigurasi</button>
+        </div>
+        <div style="margin-top:10px;" class="small muted">Catatan: Konfigurasi akan disimpan di browser (local).</div>
+      </div>
+
+      <div style="margin-top:12px;" class="small muted">
+        Tema: biru muda & putih. Motif islami minimalis: ikon bulan sabit pada konfirmasi.
+      </div>
+    </aside>
+  </div>
+
+  <div id="overlay" class="overlay" role="dialog" aria-hidden="true">
+    <div class="card">
+      <div class="crescent" aria-hidden="true"></div>
+      <h3 id="confirm-title">Absensi Berhasil</h3>
+      <p id="confirm-text" class="small">Absensi Berhasil untuk [Nama Siswa]</p>
+      <div style="margin-top:12px;">
+        <button id="close-overlay" class="btn">Tutup</button>
+      </div>
+    </div>
+  </div>
+
+<script>
+  // --- CONFIG (pre-filled with your GAS URL) ---
+  let GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwvcmLN9rYBB5scAXmjK5lFjguA3FNNmf-vPMgZNPjuN51sFCIPz1o345IYYlqMro3o/exec";
+
+  const STUDENTS = [
+    {id:"X2001", name:"Alfahrizi"},
+    {id:"X2002", name:"Alhan Zulfikar"},
+    {id:"X2003", name:"Alif Abiansyah"},
+    {id:"X2004", name:"Alka Novalen Syah"},
+    {id:"X2005", name:"Andi Anjas"},
+    {id:"X2006", name:"Aryasatya Rosyad Landry"},
+    {id:"X2007", name:"Athar Labib Syaputra"},
+    {id:"X2008", name:"Faqih Ahmad El Fayyad"},
+    {id:"X2009", name:"M. Syair Alfathir"},
+    {id:"X2010", name:"M. Zacka Ashofa"},
+    {id:"X2011", name:"Muhammad Fajri Hidayat"},
+    {id:"X2012", name:"Muhammad Fatih Al Fayadh"},
+    {id:"X2013", name:"Muhammad Katana Gunadharma"},
+    {id:"X2014", name:"Muhammad Khalif Al Mubarak"},
+    {id:"X2015", name:"Muhammad Ridho Setyawan"},
+    {id:"X2016", name:"Muhammad Tharig Aziyad"},
+    {id:"X2017", name:"Muhammad Zaky"},
+    {id:"X2018", name:"Thoifan Arif Hafizzahir"},
+    {id:"X2019", name:"Wan Sulaiman"},
+    {id:"X2020", name:"Zani Vageansyah"}
+  ];
+
+  const LOCAL_LOG_KEY = "absensi_local_log_v1";
+
+  // elements
+  const readerEl = document.getElementById('reader');
+  const startBtn = document.getElementById('start-scan');
+  const stopBtn = document.getElementById('stop-scan');
+  const overlay = document.getElementById('overlay');
+  const confirmTitle = document.getElementById('confirm-title');
+  const confirmText = document.getElementById('confirm-text');
+  const closeOverlay = document.getElementById('close-overlay');
+  const localLog = document.getElementById('local-log');
+
+  const qrList = document.getElementById('qr-list');
+  const gasUrlInput = document.getElementById('gas-url');
+  const baseLinkInput = document.getElementById('base-link');
+  const saveConfigBtn = document.getElementById('save-config');
+
+  // load config
+  function loadConfig(){
+    const cfg = JSON.parse(localStorage.getItem('app_config') || "{}");
+    if(cfg.gasUrl) { GAS_WEB_APP_URL = cfg.gasUrl; gasUrlInput.value = cfg.gasUrl; }
+    if(cfg.baseLink) baseLinkInput.value = cfg.baseLink;
+    renderQRCodes(STUDENTS);
+    updateLocalLogView();
+  }
+
+  loadConfig();
+
+  saveConfigBtn.addEventListener('click', ()=>{
+    const cfg = { gasUrl: gasUrlInput.value.trim(), baseLink: baseLinkInput.value.trim() };
+    localStorage.setItem('app_config', JSON.stringify(cfg));
+    GAS_WEB_APP_URL = cfg.gasUrl || "";
+    alert("Konfigurasi disimpan di browser.");
+  });
+
+  // render QR codes for all students
+  function renderQRCodes(list){
+    qrList.innerHTML = '';
+    const base = (baseLinkInput.value || (window.location.origin + window.location.pathname)).replace(/\/$/,'');
+    list.forEach(s=>{
+      const div = document.createElement('div');
+      div.className = 'qr-item';
+      const title = document.createElement('div');
+      title.style.fontWeight='600';
+      title.style.fontSize='13px';
+      title.innerText = `${s.id} — ${s.name}`;
+      div.appendChild(title);
+
+      const qrDiv = document.createElement('div');
+      qrDiv.style.marginTop='8px';
+      const fullLink = `${base}?id=${encodeURIComponent(s.id)}&name=${encodeURIComponent(s.name)}`;
+      new QRCode(qrDiv, { text: fullLink, width: 140, height: 140, correctLevel: QRCode.CorrectLevel.H });
+      div.appendChild(qrDiv);
+
+      const a = document.createElement('a');
+      a.href = fullLink;
+      a.innerText = "Link QR";
+      a.target = "_blank";
+      a.style.display='block';
+      a.style.marginTop='8px';
+      a.className='small';
+      div.appendChild(a);
+
+      const dl = document.createElement('button');
+      dl.className = 'btn secondary';
+      dl.innerText = "Download PNG";
+      dl.style.marginTop='8px';
+      dl.addEventListener('click', ()=>{
+        const img = qrDiv.querySelector('img') || qrDiv.querySelector('canvas');
+        if(img){
+          const dataUrl = img.tagName === 'CANVAS' ? img.toDataURL('image/png') : img.src;
+          const link = document.createElement('a');
+          link.href = dataUrl;
+          link.download = `${s.id}_${s.name}.png`;
+          document.body.appendChild(link);
+          link.click();
+          link.remove();
+        } else { alert("Gagal mendapatkan QR untuk di-download."); }
+      });
+      div.appendChild(dl);
+
+      qrList.appendChild(div);
+    });
+  }
+
+  // scanner logic
+  let html5QrCode = null;
+  let scanning = false;
+  startBtn.addEventListener('click', async ()=>{
+    if(scanning) return;
+    html5QrCode = new Html5Qrcode("reader", false);
+    try{
+      const devices = await Html5Qrcode.getCameras();
+      const cameraId = (devices && devices.length) ? devices[0].id : null;
+      if(!cameraId) { alert("Tidak menemukan kamera."); return; }
+      scanning = true;
+      await html5QrCode.start(
+        { deviceId: { exact: cameraId } },
+        { fps: 10, qrbox: { width: 300, height: 300 } },
+        onScanSuccess,
+        onScanFailure
+      );
+    } catch(err){
+      console.error(err);
+      alert("Gagal membuka kamera: " + err);
+    }
+  });
+
+  stopBtn.addEventListener('click', async ()=>{ if(html5QrCode && scanning){ try{ await html5QrCode.stop(); html5QrCode.clear(); }catch(e){} scanning=false; } readerEl.innerHTML = 'Klik "Mulai Scan" untuk membuka kamera'; });
+
+  function onScanFailure(err){ /* ignore */ }
+
+  async function onScanSuccess(decodedText, decodedResult){
+    console.log("QR scanned:", decodedText);
+    let id = null, name = null;
+    try{
+      if(decodedText.startsWith("http")){
+        const parsed = new URL(decodedText);
+        const ps = parsed.searchParams;
+        id = ps.get('id') || ps.get('ID') || ps.get('nis');
+        name = ps.get('name') || ps.get('nama');
+      } else {
+        const sp = new URLSearchParams(decodedText);
+        id = sp.get('id') || sp.get('ID') || sp.get('nis');
+        name = sp.get('name') || sp.get('nama');
+      }
+    } catch(e){ console.warn("Parse error", e); }
+
+    if(!id || !name){
+      const parts = decodedText.split(',');
+      if(parts.length>=2){ id = id||parts[0].trim(); name = name||parts[1].trim(); }
+    }
+
+    const jenisSalat = document.getElementById('jenis-salat').value;
+    const now = new Date();
+    const waktu = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
+    const tanggal = now.toLocaleDateString('id-ID');
+
+    const payload = {
+      id: id || '',
+      name: name || '',
+      jenisSalat: jenisSalat,
+      waktu: waktu,
+      tanggal: tanggal,
+      raw: decodedText
+    };
+
+    // send to GAS
+    if(GAS_WEB_APP_URL){
+      try {
+        const resp = await fetch(GAS_WEB_APP_URL, {
+          method: 'POST',
+          mode: 'cors',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const j = await resp.json();
+        console.log("GAS response:", j);
+      } catch(err){
+        console.warn("Gagal kirim ke GAS:", err);
+      }
+    }
+
+    saveLocalLog(payload);
+    showConfirmation(payload.name || payload.raw || 'Siswa');
+
+    if(html5QrCode){
+      try{ html5QrCode.pause(); } catch(e){}
+      setTimeout(()=>{ try{ html5QrCode.resume(); } catch(e){} }, 1400);
+    }
+  }
+
+  function saveLocalLog(obj){
+    const arr = JSON.parse(localStorage.getItem(LOCAL_LOG_KEY) || "[]");
+    arr.unshift(obj);
+    while(arr.length>50) arr.pop();
+    localStorage.setItem(LOCAL_LOG_KEY, JSON.stringify(arr));
+    updateLocalLogView();
+  }
+  function updateLocalLogView(){
+    const arr = JSON.parse(localStorage.getItem(LOCAL_LOG_KEY) || "[]");
+    if(!arr.length){ localLog.innerText = "Belum ada absensi lokal"; return; }
+    localLog.innerHTML = arr.slice(0,6).map(it => {
+      const t = new Date(it.tanggal + ' ' + it.waktu).toLocaleString();
+      return `<div><strong>${it.name || it.id || '(tanpa nama)'}</strong> — <span class="small">${it.jenisSalat} • ${t}</span></div>`;
+    }).join('');
+  }
+
+  function showConfirmation(name){
+    confirmTitle.innerText = "Absensi Berhasil";
+    confirmText.innerText = `Absensi Berhasil untuk ${name}`;
+    overlay.classList.add('show');
+    overlay.setAttribute('aria-hidden','false');
+    beep();
+    setTimeout(()=>{ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); }, 2400);
+  }
+  closeOverlay.addEventListener('click', ()=>{ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); });
+
+  function beep(){
+    try{
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      const o = ctx.createOscillator();
+      o.type = 'sine';
+      o.frequency.setValueAtTime(880, ctx.currentTime);
+      o.connect(ctx.destination);
+      o.start();
+      setTimeout(()=>{ o.stop(); ctx.close(); }, 120);
+    }catch(e){}
+  }
+</script>
+</body>
+</html>
