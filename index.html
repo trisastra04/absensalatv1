@@ -1,414 +1,626 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="id">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Absensi Salat - SMA Unggul Islam Al-Fahd</title>
-
-  <style>
-    :root{
-      --blue:#aed9ff;
-      --blue-2:#bfe9ff;
-      --white:#ffffff;
-      --dark:#153243;
-      font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-    }
-    body{
-      margin:0;
-      background: linear-gradient(180deg,var(--blue) 0%, #f7fdff 100%);
-      color:var(--dark);
-      min-height:100vh;
-      display:flex;
-      align-items:center;
-      justify-content:center;
-      padding:16px;
-    }
-    .container{
-      width:100%;
-      max-width:1000px;
-      background:var(--white);
-      border-radius:18px;
-      box-shadow:0 8px 28px rgba(0,0,0,0.08);
-      overflow:hidden;
-      display:grid;
-      grid-template-columns: 1fr 380px;
-    }
-    header{
-      padding:16px 18px;
-      display:flex;
-      align-items:center;
-      gap:12px;
-      border-bottom:1px solid rgba(0,0,0,0.04);
-    }
-    header img.logo{
-      width:56px;
-      height:56px;
-      object-fit:contain;
-      border-radius:8px;
-      background:var(--white);
-      padding:6px;
-    }
-    header h1{ font-size:18px; margin:0; }
-    main.left{ padding:18px; }
-    .panel{
-      background: linear-gradient(180deg, rgba(174,217,255,0.12), rgba(191,233,255,0.06));
-      padding:12px;
-      border-radius:12px;
-      margin-bottom:12px;
-    }
-    .panel h2{ margin:6px 0 12px 0; font-size:16px }
-    .btn{
-      display:inline-block;
-      padding:10px 14px;
-      border-radius:10px;
-      background:var(--dark);
-      color:var(--white);
-      text-decoration:none;
-      cursor:pointer;
-      border:none;
-      font-weight:600;
-    }
-    .btn.secondary{
-      background:transparent;
-      color:var(--dark);
-      border:1px solid rgba(0,0,0,0.08);
-    }
-    .right{ padding:18px; border-left:1px solid rgba(0,0,0,0.04); background: linear-gradient(180deg, #ffffff, #f4fbff); }
-    .small{ font-size:13px; color:rgba(0,0,0,0.6) }
-    .qr-grid{ display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
-    .qr-item{ background:rgba(0,0,0,0.02); padding:8px; border-radius:10px; text-align:center; }
-    @media (max-width:900px){
-      .container{ grid-template-columns: 1fr; }
-      .right{ order:2; border-left:0; border-top:1px solid rgba(0,0,0,0.04); }
-    }
-    .overlay{
-      position:fixed; inset:0; display:flex; align-items:center; justify-content:center;
-      background:rgba(0,0,0,0.25); z-index:9999; visibility:hidden; opacity:0; transition:all 180ms ease;
-    }
-    .overlay.show{ visibility:visible; opacity:1; }
-    .card{ background:var(--white); border-radius:12px; padding:18px 22px; box-shadow:0 12px 40px rgba(0,0,0,0.12); text-align:center; min-width:260px; }
-    .crescent{ width:64px; height:64px; display:inline-block; border-radius:50%; background: radial-gradient(circle at 30% 30%, rgba(0,0,0,0.06), transparent 40%), var(--blue-2); margin-bottom:10px; }
-    #reader { width:100%; min-height:320px; border-radius:10px; overflow:hidden; background: #000; display:flex; align-items:center; justify-content:center; color:white; }
-    #reader video{ width:100%; height:100%; object-fit:cover; }
-  </style>
-
-  <!-- Libraries -->
-  <script src="https://unpkg.com/html5-qrcode@2.3.8/minified/html5-qrcode.min.js"></script>
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Analisis Jawaban Murid</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Inter', sans-serif; }
+    </style>
 </head>
-<body>
-  <div class="container" role="application">
-    <div>
-      <header>
-        <img src="cropped-logo-sma-unggul-alfahd.png" alt="Logo" class="logo" />
-        <div>
-          <h1>SMA Unggul Islam Al-Fahd — Absensi Salat</h1>
-          <div class="small">Scanner QR untuk guru • Admin panel untuk mengelola & membuat QR siswa</div>
+<body class="bg-slate-100 min-h-screen">
+
+    <!-- Pop Up/Modal Login Guru -->
+    <div id="login-modal" class="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
+        <div class="bg-white p-8 rounded-lg shadow-xl w-full max-w-sm">
+            <h2 class="text-2xl font-bold text-center text-slate-800">Login Guru</h2>
+            <p class="text-center text-slate-500 mt-2">Masukkan kredensial untuk mengakses halaman analisis.</p>
+            <div class="mt-6 space-y-4">
+                <div>
+                    <label for="teacher-id" class="block text-sm font-medium text-slate-700">ID Guru</label>
+                    <input type="text" id="teacher-id" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-3">
+                </div>
+                <div>
+                    <label for="teacher-password" class="block text-sm font-medium text-slate-700">Password</label>
+                    <input type="password" id="teacher-password" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-3">
+                </div>
+                <p id="login-error" class="text-red-500 text-sm h-4"></p>
+                <div class="flex justify-end">
+                    <button id="submit-login-button" class="w-full bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700">Login</button>
+                </div>
+            </div>
         </div>
-      </header>
-
-      <main class="left">
-        <div class="panel">
-          <h2>Scanner QR (Guru)</h2>
-
-          <label class="small">Pilih Jenis Salat:</label>
-          <select id="jenis-salat" style="width:100%; padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); margin-bottom:8px;">
-            <option value="Subuh">Subuh</option>
-            <option value="Dzuhur">Dzuhur</option>
-            <option value="Ashar">Ashar</option>
-            <option value="Maghrib">Maghrib</option>
-            <option value="Isya">Isya</option>
-          </select>
-
-          <div id="reader">Klik "Mulai Scan" untuk membuka kamera</div>
-          <div style="margin-top:10px;">
-            <button id="start-scan" class="btn">Mulai Scan</button>
-            <button id="stop-scan" class="btn secondary">Stop</button>
-            <span class="small" style="margin-left:12px;">Pilih kamera jika perlu pada prompt browser.</span>
-          </div>
-        </div>
-
-        <div class="panel">
-          <h2>Riwayat local (sementara)</h2>
-          <div id="local-log" class="small">Belum ada absensi lokal</div>
-        </div>
-      </main>
     </div>
 
-    <aside class="right">
-      <div class="panel">
-        <h2>Admin — Daftar Siswa & QR</h2>
-        <div class="small">Daftar siswa otomatis tersedia di sini. Anda dapat mendownload QR per siswa.</div>
-        <div style="margin-top:10px;">
-          <div id="qr-list" class="qr-grid"></div>
+    <!-- Konten Utama Halaman Analisis (Awalnya Tersembunyi) -->
+    <main id="main-content" class="container mx-auto p-4 pt-8 hidden">
+        <h1 class="text-3xl font-bold text-slate-800 text-center">Halaman Analisis Jawaban</h1>
+
+        <!-- Form Pilihan -->
+        <div class="mt-8 max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md">
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4 items-end">
+                <div>
+                    <label class="block text-sm font-medium text-slate-700">1. Pilih Ujian</label>
+                    <select id="exam-type-select" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2">
+                        <option value="">-- Pilih --</option>
+                        <option value="utama">Ulangan Utama</option>
+                        <option value="remedial">Remedial</option>
+                    </select>
+                </div>
+                <div>
+                    <label for="class-select" class="block text-sm font-medium text-slate-700">2. Pilih Kelas</label>
+                    <select id="class-select" class="mt-1 block w-full rounded-md border-slate-300 shadow-sm p-2" disabled>
+                        <option>--</option>
+                    </select>
+                </div>
+            </div>
+            <div id="analysis-type-selection" class="hidden mt-4 pt-4 border-t grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                    <h3 class="font-semibold text-slate-800">Analisis Per Kelas</h3>
+                    <p class="text-sm text-slate-500 mb-2">Lihat rekapitulasi jawaban untuk seluruh kelas.</p>
+                    <button id="show-class-analysis-btn" class="w-full bg-cyan-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-cyan-700">
+                        Tampilkan Analisis Kelas
+                    </button>
+                </div>
+                <div>
+                    <h3 class="font-semibold text-slate-800">Analisis Per Murid</h3>
+                    <p class="text-sm text-slate-500 mb-2">Pilih murid spesifik untuk melihat detail jawaban.</p>
+                    <div class="grid grid-cols-2 gap-2 items-end">
+                         <select id="student-select" class="block w-full rounded-md border-slate-300 shadow-sm p-2" disabled>
+                            <option value="">-- Pilih Murid --</option>
+                        </select>
+                        <button id="show-student-analysis-btn" class="bg-indigo-600 text-white font-bold py-2 px-4 rounded-lg hover:bg-indigo-700 disabled:bg-slate-400" disabled>
+                            Tampilkan
+                        </button>
+                    </div>
+                </div>
+            </div>
+             <p id="loading-status" class="text-center text-sm text-slate-500 mt-2 h-4"></p>
         </div>
-      </div>
 
-      <div class="panel">
-        <h2>Konfigurasi</h2>
-        <div class="small">URL Google Apps Script (endpoint)</div>
-        <input id="gas-url" type="url" placeholder="https://script.google.com/macros/s/XXXXX/exec" style="width:100%; padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); margin-top:6px" />
-        <div class="small" style="margin-top:8px">Base link untuk QR (opsional). Default: halaman ini</div>
-        <input id="base-link" type="url" placeholder="Biarkan kosong untuk pakai halaman ini" style="width:100%; padding:8px; border-radius:8px; border:1px solid rgba(0,0,0,0.06); margin-top:6px" />
-        <div style="margin-top:10px; display:flex; gap:8px;">
-          <button id="save-config" class="btn">Simpan Konfigurasi</button>
+        <!-- Kontainer Hasil Analisis Individu -->
+        <div id="student-analysis-result-container" class="mt-6 max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md hidden">
+             <div class="mb-6 border-b pb-4">
+                <h2 class="text-2xl font-bold text-slate-800">Hasil Analisis Murid</h2>
+                <div class="mt-2 grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-sm text-slate-500">Nama Murid</p>
+                        <p id="student-name-result" class="font-bold text-lg"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500">Kelas</p>
+                        <p id="student-class-result" class="font-bold text-lg"></p>
+                    </div>
+                     <div>
+                        <p class="text-sm text-slate-500">Skor Akhir</p>
+                        <p id="student-score-result" class="font-bold text-lg"></p>
+                    </div>
+                </div>
+            </div>
+            <div id="question-analysis-list" class="space-y-4">
+                <!-- Hasil analisis per soal akan ditampilkan di sini -->
+            </div>
         </div>
-        <div style="margin-top:10px;" class="small muted">Catatan: Konfigurasi akan disimpan di browser (local).</div>
-      </div>
+        
+        <!-- Kontainer Hasil Analisis Kelas -->
+        <div id="class-analysis-result-container" class="mt-6 max-w-4xl mx-auto bg-white p-6 rounded-lg shadow-md hidden">
+            <div class="mb-6 border-b pb-4">
+                <h2 class="text-2xl font-bold text-slate-800">Hasil Analisis Kelas</h2>
+                 <div class="mt-2 grid grid-cols-3 gap-4 text-center">
+                    <div>
+                        <p class="text-sm text-slate-500">Kelas</p>
+                        <p id="class-name-result" class="font-bold text-lg"></p>
+                    </div>
+                    <div>
+                        <p class="text-sm text-slate-500">Jumlah Peserta</p>
+                        <p id="class-student-count" class="font-bold text-lg"></p>
+                    </div>
+                     <div>
+                        <p class="text-sm text-slate-500">Rata-rata Skor</p>
+                        <p id="class-average-score" class="font-bold text-lg"></p>
+                    </div>
+                </div>
+            </div>
 
-      <div style="margin-top:12px;" class="small muted">
-        Tema: biru muda & putih. Motif islami minimalis: ikon bulan sabit pada konfirmasi.
-      </div>
-    </aside>
-  </div>
+            <!-- PENAMBAHAN: Fitur Gemini -->
+            <div id="gemini-feature-container" class="my-6">
+                <button id="generate-summary-btn" class="w-full bg-gradient-to-r from-purple-500 to-indigo-600 text-white font-bold py-3 px-6 rounded-lg hover:opacity-90 transition-opacity">
+                    ✨ Buat Ringkasan Analisis dengan AI
+                </button>
+                <div id="ai-summary-container" class="mt-4 hidden p-4 border rounded-lg bg-slate-50">
+                    <h3 class="text-lg font-bold text-slate-800 mb-2">Ringkasan Analisis AI</h3>
+                    <div id="ai-summary-content" class="text-slate-700 space-y-2"></div>
+                </div>
+            </div>
+            <!-- AKHIR PENAMBAHAN -->
+            
+            <div id="class-question-analysis-list" class="space-y-4">
+                <!-- Hasil analisis per soal kelas akan ditampilkan di sini -->
+            </div>
+        </div>
 
-  <div id="overlay" class="overlay" role="dialog" aria-hidden="true">
-    <div class="card">
-      <div class="crescent" aria-hidden="true"></div>
-      <h3 id="confirm-title">Absensi Berhasil</h3>
-      <p id="confirm-text" class="small">Absensi Berhasil untuk [Nama Siswa]</p>
-      <div style="margin-top:12px;">
-        <button id="close-overlay" class="btn">Tutup</button>
-      </div>
-    </div>
-  </div>
+    </main>
 
-<script>
-  // --- CONFIG (pre-filled with your GAS URL) ---
-  let GAS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbwvcmLN9rYBB5scAXmjK5lFjguA3FNNmf-vPMgZNPjuN51sFCIPz1o345IYYlqMro3o/exec";
+    <script>
+        // --- PENGATURAN DATA ---
+        const teacherLoginSheetURL = 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnP8COEuoPRN4A6QqHCayDqWfciL9F7CQTasp4S1m4M0JAmYdvJuDjg7D1dqlnnyiJdtuMxRFOjBPg/pub?gid=1382150609&single=true&output=csv';
+        
+        const answerSheetURLs = {
+            utama: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnP8COEuoPRN4A6QqHCayDqWfciL9F7CQTasp4S1m4M0JAmYdvJuDjg7D1dqlnnyiJdtuMxRFOjBPg/pub?gid=4366504&single=true&output=csv',
+            remedial: 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnP8COEuoPRN4A6QqHCayDqWfciL9F7CQTasp4S1m4M0JAmYdvJuDjg7D1dqlnnyiJdtuMxRFOjBPg/pub?gid=932637125&single=true&output=csv'
+        };
 
-  const STUDENTS = [
-    {id:"X2001", name:"Alfahrizi"},
-    {id:"X2002", name:"Alhan Zulfikar"},
-    {id:"X2003", name:"Alif Abiansyah"},
-    {id:"X2004", name:"Alka Novalen Syah"},
-    {id:"X2005", name:"Andi Anjas"},
-    {id:"X2006", name:"Aryasatya Rosyad Landry"},
-    {id:"X2007", name:"Athar Labib Syaputra"},
-    {id:"X2008", name:"Faqih Ahmad El Fayyad"},
-    {id:"X2009", name:"M. Syair Alfathir"},
-    {id:"X2010", name:"M. Zacka Ashofa"},
-    {id:"X2011", name:"Muhammad Fajri Hidayat"},
-    {id:"X2012", name:"Muhammad Fatih Al Fayadh"},
-    {id:"X2013", name:"Muhammad Katana Gunadharma"},
-    {id:"X2014", name:"Muhammad Khalif Al Mubarak"},
-    {id:"X2015", name:"Muhammad Ridho Setyawan"},
-    {id:"X2016", name:"Muhammad Tharig Aziyad"},
-    {id:"X2017", name:"Muhammad Zaky"},
-    {id:"X2018", name:"Thoifan Arif Hafizzahir"},
-    {id:"X2019", name:"Wan Sulaiman"},
-    {id:"X2020", name:"Zani Vageansyah"}
-  ];
+        const quizURLs = {
+            'Kelas X': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnP8COEuoPRN4A6QqHCayDqWfciL9F7CQTasp4S1m4M0JAmYdvJuDjg7D1dqlnnyiJdtuMxRFOjBPg/pub?gid=427248072&single=true&output=csv',
+            'Kelas XI': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnP8COEuoPRN4A6QqHCayDqWfciL9F7CQTasp4S1m4M0JAmYdvJuDjg7D1dqlnnyiJdtuMxRFOjBPg/pub?gid=0&single=true&output=csv',
+            'Kelas XII': 'https://docs.google.com/spreadsheets/d/e/2PACX-1vQnP8COEuoPRN4A6QqHCayDqWfciL9F7CQTasp4S1m4M0JAmYdvJuDjg7D1dqlnnyiJdtuMxRFOjBPg/pub?gid=1252248885&single=true&output=csv',
+        };
 
-  const LOCAL_LOG_KEY = "absensi_local_log_v1";
+        // --- ELEMEN DOM ---
+        const allElements = {
+            loginModal: document.getElementById('login-modal'),
+            submitLoginButton: document.getElementById('submit-login-button'),
+            teacherIdInput: document.getElementById('teacher-id'),
+            teacherPasswordInput: document.getElementById('teacher-password'),
+            loginError: document.getElementById('login-error'),
+            mainContent: document.getElementById('main-content'),
+            examTypeSelect: document.getElementById('exam-type-select'),
+            classSelect: document.getElementById('class-select'),
+            studentSelect: document.getElementById('student-select'),
+            showStudentAnalysisBtn: document.getElementById('show-student-analysis-btn'),
+            showClassAnalysisBtn: document.getElementById('show-class-analysis-btn'),
+            loadingStatus: document.getElementById('loading-status'),
+            studentAnalysisResultContainer: document.getElementById('student-analysis-result-container'),
+            studentNameResult: document.getElementById('student-name-result'),
+            studentClassResult: document.getElementById('student-class-result'),
+            studentScoreResult: document.getElementById('student-score-result'),
+            questionAnalysisList: document.getElementById('question-analysis-list'),
+            analysisTypeSelection: document.getElementById('analysis-type-selection'),
+            classAnalysisResultContainer: document.getElementById('class-analysis-result-container'),
+            classNameResult: document.getElementById('class-name-result'),
+            classStudentCount: document.getElementById('class-student-count'),
+            classAverageScore: document.getElementById('class-average-score'),
+            classQuestionAnalysisList: document.getElementById('class-question-analysis-list'),
+            generateSummaryBtn: document.getElementById('generate-summary-btn'),
+            aiSummaryContainer: document.getElementById('ai-summary-container'),
+            aiSummaryContent: document.getElementById('ai-summary-content'),
+        };
 
-  // elements
-  const readerEl = document.getElementById('reader');
-  const startBtn = document.getElementById('start-scan');
-  const stopBtn = document.getElementById('stop-scan');
-  const overlay = document.getElementById('overlay');
-  const confirmTitle = document.getElementById('confirm-title');
-  const confirmText = document.getElementById('confirm-text');
-  const closeOverlay = document.getElementById('close-overlay');
-  const localLog = document.getElementById('local-log');
+        // --- STATE ---
+        let teacherCredentials = [], allSubmissions = [], allQuestions = [], classAnalysisData = {};
 
-  const qrList = document.getElementById('qr-list');
-  const gasUrlInput = document.getElementById('gas-url');
-  const baseLinkInput = document.getElementById('base-link');
-  const saveConfigBtn = document.getElementById('save-config');
+        // --- FUNGSI-FUNGSI ---
+        function parseCSV(csvText) {
+            const rows = []; let inQuotes = false; let currentField = ''; let currentRow = [];
+            csvText = csvText.trim();
+            for (let i = 0; i < csvText.length; i++) {
+                const char = csvText[i]; const nextChar = csvText[i + 1];
+                if (inQuotes) {
+                    if (char === '"' && nextChar === '"') { currentField += '"'; i++; } 
+                    else if (char === '"') { inQuotes = false; } 
+                    else { currentField += char; }
+                } else {
+                    if (char === '"') { inQuotes = true; } 
+                    else if (char === ',') { currentRow.push(currentField.trim()); currentField = ''; } 
+                    else if (char === '\n' || char === '\r') {
+                        currentRow.push(currentField.trim()); rows.push(currentRow);
+                        currentRow = []; currentField = '';
+                        if (char === '\r' && nextChar === '\n') { i++; }
+                    } else { currentField += char; }
+                }
+            }
+            if (currentField || currentRow.length > 0) { currentRow.push(currentField.trim()); rows.push(currentRow); }
+            return rows;
+        }
 
-  // load config
-  function loadConfig(){
-    const cfg = JSON.parse(localStorage.getItem('app_config') || "{}");
-    if(cfg.gasUrl) { GAS_WEB_APP_URL = cfg.gasUrl; gasUrlInput.value = cfg.gasUrl; }
-    if(cfg.baseLink) baseLinkInput.value = cfg.baseLink;
-    renderQRCodes(STUDENTS);
-    updateLocalLogView();
-  }
+        async function fetchTeacherCredentials() {
+             try {
+                const response = await fetch(teacherLoginSheetURL);
+                if (!response.ok) throw new Error('Gagal memuat data login guru.');
+                const csvText = await response.text();
+                const rows = parseCSV(csvText);
+                rows.shift();
+                teacherCredentials = rows.map(row => ({ id: row[0], password: row[1] })).filter(cred => cred.id && cred.password);
+            } catch (error) {
+                console.error(error);
+                loginError.textContent = "Gagal memuat data kredensial."
+            }
+        }
+        
+        function handleLogin() {
+            const id = allElements.teacherIdInput.value.trim();
+            const password = allElements.teacherPasswordInput.value.trim();
+            allElements.loginError.textContent = '';
+            if (!id || !password) {
+                allElements.loginError.textContent = 'ID dan Password tidak boleh kosong.';
+                return;
+            }
+            const isValid = teacherCredentials.find(cred => cred.id === id && cred.password === password);
+            if (isValid) {
+                allElements.loginModal.classList.add('hidden');
+                allElements.mainContent.classList.remove('hidden');
+            } else {
+                allElements.loginError.textContent = 'ID atau Password salah.';
+            }
+        }
 
-  loadConfig();
+        async function fetchSubmissions(url) {
+            allElements.loadingStatus.textContent = 'Memuat data jawaban...';
+            if (!url || !url.startsWith('https')) {
+                const errorMsg = 'URL untuk sheet jawaban ini belum diatur. Silakan periksa konfigurasi.';
+                allElements.loadingStatus.textContent = `Error: ${errorMsg}`;
+                console.error(errorMsg);
+                return [];
+            }
+            try {
+                const response = await fetch(url + '&t=' + new Date().getTime());
+                if (!response.ok) throw new Error('Gagal memuat data jawaban.');
+                const csvText = await response.text();
+                const rows = parseCSV(csvText);
+                const headers = rows.shift();
+                return rows.map(row => {
+                    const submission = {};
+                    if(headers) {
+                       headers.forEach((header, index) => {
+                           submission[header] = row[index];
+                       });
+                    }
+                    return submission;
+                });
+            } catch (error) {
+                console.error(error);
+                allElements.loadingStatus.textContent = 'Error: ' + error.message;
+                return [];
+            } finally {
+                allElements.loadingStatus.textContent = '';
+            }
+        }
 
-  saveConfigBtn.addEventListener('click', ()=>{
-    const cfg = { gasUrl: gasUrlInput.value.trim(), baseLink: baseLinkInput.value.trim() };
-    localStorage.setItem('app_config', JSON.stringify(cfg));
-    GAS_WEB_APP_URL = cfg.gasUrl || "";
-    alert("Konfigurasi disimpan di browser.");
-  });
+        async function fetchQuestionBank(url) {
+            allElements.loadingStatus.textContent = 'Memuat bank soal...';
+            try {
+                 const response = await fetch(url + '&t=' + new Date().getTime());
+                if (!response.ok) throw new Error('Gagal memuat bank soal.');
+                const csvText = await response.text();
+                const rows = parseCSV(csvText);
+                const headers = rows.shift();
+                const colMap = {
+                    soal: headers.indexOf('Soal'), opsiA: headers.indexOf('Opsi A'), opsiB: headers.indexOf('Opsi B'),
+                    opsiC: headers.indexOf('Opsi C'), opsiD: headers.indexOf('Opsi D'), opsiE: headers.indexOf('Opsi E'),
+                    kunci: headers.indexOf('Kunci Jawaban')
+                };
+                
+                return rows.map((columns, index) => {
+                    const key = columns[colMap.kunci]?.toUpperCase().trim();
+                    let answer = '';
+                    if (key === 'A') answer = columns[colMap.opsiA]; else if (key === 'B') answer = columns[colMap.opsiB];
+                    else if (key === 'C') answer = columns[colMap.opsiC]; else if (key === 'D') answer = columns[colMap.opsiD];
+                    else if (key === 'E') answer = columns[colMap.opsiE];
+                    return {
+                        question: columns[colMap.soal],
+                        answer: answer,
+                        originalIndex: index + 1
+                    };
+                }).filter(q => q.question && q.answer);
+            } catch (error) {
+                console.error(error);
+                allElements.loadingStatus.textContent = 'Error: ' + error.message;
+                return [];
+            } finally {
+                allElements.loadingStatus.textContent = '';
+            }
+        }
 
-  // render QR codes for all students
-  function renderQRCodes(list){
-    qrList.innerHTML = '';
-    const base = (baseLinkInput.value || (window.location.origin + window.location.pathname)).replace(/\/$/,'');
-    list.forEach(s=>{
-      const div = document.createElement('div');
-      div.className = 'qr-item';
-      const title = document.createElement('div');
-      title.style.fontWeight='600';
-      title.style.fontSize='13px';
-      title.innerText = `${s.id} — ${s.name}`;
-      div.appendChild(title);
+        function populateClassSelect() {
+            const classes = [...new Set(allSubmissions.map(s => s.Kelas))].filter(Boolean);
+            allElements.classSelect.innerHTML = '<option value="">-- Pilih Kelas --</option>';
+            classes.sort().forEach(c => {
+                allElements.classSelect.innerHTML += `<option value="${c}">${c}</option>`;
+            });
+            allElements.classSelect.disabled = false;
+        }
 
-      const qrDiv = document.createElement('div');
-      qrDiv.style.marginTop='8px';
-      const fullLink = `${base}?id=${encodeURIComponent(s.id)}&name=${encodeURIComponent(s.name)}`;
-      new QRCode(qrDiv, { text: fullLink, width: 140, height: 140, correctLevel: QRCode.CorrectLevel.H });
-      div.appendChild(qrDiv);
+        function populateStudentSelect() {
+            const selectedClass = allElements.classSelect.value;
+            const studentsInClass = allSubmissions.filter(s => s.Kelas === selectedClass);
+            allElements.studentSelect.innerHTML = '<option value="">-- Pilih Murid --</option>';
+            studentsInClass.forEach((s, index) => {
+                const timestamp = new Date(s.Timestamp).toLocaleString('id-ID');
+                allElements.studentSelect.innerHTML += `<option value="${index}">${s.Nama} (${timestamp})</option>`;
+            });
+        }
+        
+        function parseStudentAnswerLog(logString) {
+            const answers = {};
+            if (!logString) return answers;
+            const entries = logString.split(';');
+            entries.forEach(entry => {
+                const match = entry.match(/Soal (\d+): "([^"]*)" \((Benar|Salah)\)/);
+                if (match) {
+                    answers[match[1]] = {
+                        answer: match[2],
+                        isCorrect: match[3] === 'Benar'
+                    };
+                }
+            });
+            return answers;
+        }
 
-      const a = document.createElement('a');
-      a.href = fullLink;
-      a.innerText = "Link QR";
-      a.target = "_blank";
-      a.style.display='block';
-      a.style.marginTop='8px';
-      a.className='small';
-      div.appendChild(a);
+        function displayStudentAnalysis(studentSubmission, questionBank) {
+            allElements.studentAnalysisResultContainer.classList.remove('hidden');
+            allElements.classAnalysisResultContainer.classList.add('hidden');
+            allElements.studentNameResult.textContent = studentSubmission.Nama;
+            allElements.studentClassResult.textContent = studentSubmission.Kelas;
+            allElements.studentScoreResult.textContent = studentSubmission.Skor;
 
-      const dl = document.createElement('button');
-      dl.className = 'btn secondary';
-      dl.innerText = "Download PNG";
-      dl.style.marginTop='8px';
-      dl.addEventListener('click', ()=>{
-        const img = qrDiv.querySelector('img') || qrDiv.querySelector('canvas');
-        if(img){
-          const dataUrl = img.tagName === 'CANVAS' ? img.toDataURL('image/png') : img.src;
-          const link = document.createElement('a');
-          link.href = dataUrl;
-          link.download = `${s.id}_${s.name}.png`;
-          document.body.appendChild(link);
-          link.click();
-          link.remove();
-        } else { alert("Gagal mendapatkan QR untuk di-download."); }
-      });
-      div.appendChild(dl);
+            allElements.questionAnalysisList.innerHTML = '';
+            const studentAnswers = parseStudentAnswerLog(studentSubmission.Nomor_soal_dikerjakan);
 
-      qrList.appendChild(div);
-    });
-  }
+            const questionNumbersInLog = Object.keys(studentAnswers).map(Number).sort((a,b) => a-b);
 
-  // scanner logic
-  let html5QrCode = null;
-  let scanning = false;
-  startBtn.addEventListener('click', async ()=>{
-    if(scanning) return;
-    html5QrCode = new Html5Qrcode("reader", false);
-    try{
-      const devices = await Html5Qrcode.getCameras();
-      const cameraId = (devices && devices.length) ? devices[0].id : null;
-      if(!cameraId) { alert("Tidak menemukan kamera."); return; }
-      scanning = true;
-      await html5QrCode.start(
-        { deviceId: { exact: cameraId } },
-        { fps: 10, qrbox: { width: 300, height: 300 } },
-        onScanSuccess,
-        onScanFailure
-      );
-    } catch(err){
-      console.error(err);
-      alert("Gagal membuka kamera: " + err);
-    }
-  });
+            questionNumbersInLog.forEach(qNumber => {
+                const questionData = questionBank.find(q => q.originalIndex == qNumber);
+                const studentAnswerData = studentAnswers[qNumber];
+                if (!questionData) return;
 
-  stopBtn.addEventListener('click', async ()=>{ if(html5QrCode && scanning){ try{ await html5QrCode.stop(); html5QrCode.clear(); }catch(e){} scanning=false; } readerEl.innerHTML = 'Klik "Mulai Scan" untuk membuka kamera'; });
+                const isCorrect = studentAnswerData.isCorrect;
+                const resultClass = isCorrect ? 'border-green-500 bg-green-50' : 'border-red-500 bg-red-50';
+                
+                let answerHtml = `<p class="mt-2 text-sm">Jawaban Murid: <span class="font-semibold text-green-700">${studentAnswerData.answer} (Benar)</span></p>`;
+                if (!isCorrect) {
+                    answerHtml = `
+                        <p class="mt-2 text-sm">Jawaban Murid: <span class="font-semibold text-red-700">${studentAnswerData.answer} (Salah)</span></p>
+                        <p class="mt-1 text-sm">Kunci Jawaban: <span class="font-semibold text-blue-700">${questionData.answer}</span></p>
+                    `;
+                }
 
-  function onScanFailure(err){ /* ignore */ }
+                const questionElement = `
+                    <div class="p-4 border-l-4 ${resultClass} rounded-r-lg">
+                        <p class="font-semibold text-slate-800">Soal #${qNumber}: ${questionData.question}</p>
+                        ${answerHtml}
+                    </div>
+                `;
+                allElements.questionAnalysisList.innerHTML += questionElement;
+            });
+        }
+        
+        function displayClassAnalysis(submissionsForClass, questionBank) {
+            allElements.classAnalysisResultContainer.classList.remove('hidden');
+            allElements.studentAnalysisResultContainer.classList.add('hidden');
+            allElements.aiSummaryContainer.classList.add('hidden');
 
-  async function onScanSuccess(decodedText, decodedResult){
-    console.log("QR scanned:", decodedText);
-    let id = null, name = null;
-    try{
-      if(decodedText.startsWith("http")){
-        const parsed = new URL(decodedText);
-        const ps = parsed.searchParams;
-        id = ps.get('id') || ps.get('ID') || ps.get('nis');
-        name = ps.get('name') || ps.get('nama');
-      } else {
-        const sp = new URLSearchParams(decodedText);
-        id = sp.get('id') || sp.get('ID') || sp.get('nis');
-        name = sp.get('name') || sp.get('nama');
-      }
-    } catch(e){ console.warn("Parse error", e); }
+            const studentCount = submissionsForClass.length;
+            const totalScore = submissionsForClass.reduce((acc, s) => acc + (parseInt(s.Skor) || 0), 0);
+            const avgScore = studentCount > 0 ? (totalScore / studentCount).toFixed(1) : 0;
+            
+            allElements.classNameResult.textContent = allElements.classSelect.value;
+            allElements.classStudentCount.textContent = studentCount;
+            allElements.classAverageScore.textContent = avgScore;
+            
+            const questionAnalysis = {};
 
-    if(!id || !name){
-      const parts = decodedText.split(',');
-      if(parts.length>=2){ id = id||parts[0].trim(); name = name||parts[1].trim(); }
-    }
+            submissionsForClass.forEach(submission => {
+                const studentAnswers = parseStudentAnswerLog(submission.Nomor_soal_dikerjakan);
+                 Object.keys(studentAnswers).forEach(qNumber => {
+                    if(!questionAnalysis[qNumber]) {
+                        questionAnalysis[qNumber] = { correct: 0, total: 0, correctStudents: [] };
+                    }
+                    questionAnalysis[qNumber].total++;
+                    if(studentAnswers[qNumber].isCorrect) {
+                        questionAnalysis[qNumber].correct++;
+                        questionAnalysis[qNumber].correctStudents.push(submission.Nama);
+                    }
+                 });
+            });
+            
+            classAnalysisData = {
+                className: allElements.classSelect.value,
+                studentCount: studentCount,
+                averageScore: avgScore,
+                questionDetails: []
+            };
 
-    const jenisSalat = document.getElementById('jenis-salat').value;
-    const now = new Date();
-    const waktu = now.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' });
-    const tanggal = now.toLocaleDateString('id-ID');
+            allElements.classQuestionAnalysisList.innerHTML = '';
+            questionBank.sort((a, b) => a.originalIndex - b.originalIndex).forEach(qData => {
+                const qNumber = qData.originalIndex;
+                const analysis = questionAnalysis[qNumber];
+                if(!analysis) return;
 
-    const payload = {
-      id: id || '',
-      name: name || '',
-      jenisSalat: jenisSalat,
-      waktu: waktu,
-      tanggal: tanggal,
-      raw: decodedText
-    };
+                const correctPercentage = (analysis.correct / analysis.total * 100);
+                let bgColor = 'bg-green-100';
+                if (correctPercentage < 75) bgColor = 'bg-yellow-100';
+                if (correctPercentage < 50) bgColor = 'bg-red-100';
 
-    // send to GAS
-    if(GAS_WEB_APP_URL){
-      try {
-        const resp = await fetch(GAS_WEB_APP_URL, {
-          method: 'POST',
-          mode: 'cors',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+                classAnalysisData.questionDetails.push({
+                    nomorSoal: qNumber,
+                    teksSoal: qData.question.substring(0, 100) + '...',
+                    persentaseBenar: correctPercentage.toFixed(0)
+                });
+
+                const correctStudentsList = analysis.correctStudents.length > 0 
+                    ? analysis.correctStudents.join(', ')
+                    : 'Tidak ada';
+
+                const questionElement = `
+                    <div class="p-4 border rounded-lg ${bgColor}">
+                        <p class="font-semibold text-slate-800">Soal #${qNumber}: ${qData.question}</p>
+                        <p class="mt-2 text-sm">Kunci Jawaban: <span class="font-semibold text-blue-700">${qData.answer}</span></p>
+                        <div class="mt-2 text-sm">
+                            <span>Dijawab benar oleh <strong>${analysis.correct}</strong> dari <strong>${analysis.total}</strong> murid</span>
+                            <div class="w-full bg-slate-200 rounded-full h-2.5 mt-1">
+                                <div class="bg-blue-600 h-2.5 rounded-full" style="width: ${correctPercentage.toFixed(0)}%"></div>
+                            </div>
+                            <span class="font-bold float-right">${correctPercentage.toFixed(0)}%</span>
+                        </div>
+                        <details class="mt-3 text-sm">
+                            <summary class="cursor-pointer text-slate-600 hover:text-slate-900">Lihat Murid yang Menjawab Benar (${analysis.correct})</summary>
+                            <div class="mt-2 p-2 bg-white rounded border text-slate-700">
+                                ${correctStudentsList}
+                            </div>
+                        </details>
+                    </div>
+                `;
+                allElements.classQuestionAnalysisList.innerHTML += questionElement;
+            });
+        }
+        
+        async function onShowStudentAnalysis() {
+            allElements.showStudentAnalysisBtn.disabled = true;
+            const studentIndex = allElements.studentSelect.value;
+            if (studentIndex === '') return;
+            const studentSubmission = allSubmissions.filter(s => s.Kelas === allElements.classSelect.value)[studentIndex];
+            let quizSheetURL = '';
+            if (studentSubmission.Kelas.startsWith('Kelas XII')) quizSheetURL = quizURLs['Kelas XII'];
+            else if (studentSubmission.Kelas.startsWith('Kelas XI')) quizSheetURL = quizURLs['Kelas XI'];
+            else if (studentSubmission.Kelas.startsWith('Kelas X')) quizSheetURL = quizURLs['Kelas X'];
+            if (!quizSheetURL) { allElements.loadingStatus.textContent = "Bank soal tidak ditemukan."; return; }
+            allQuestions = await fetchQuestionBank(quizSheetURL);
+            if (allQuestions.length > 0) {
+                displayStudentAnalysis(studentSubmission, allQuestions);
+            }
+            allElements.showStudentAnalysisBtn.disabled = false;
+        }
+
+        async function onShowClassAnalysis() {
+            allElements.showClassAnalysisBtn.disabled = true;
+            const selectedClass = allElements.classSelect.value;
+            if(!selectedClass) return;
+
+            const submissionsForClass = allSubmissions.filter(s => s.Kelas === selectedClass);
+            if(submissionsForClass.length === 0) {
+                alert('Tidak ada data jawaban untuk kelas ini.');
+                allElements.showClassAnalysisBtn.disabled = false;
+                return;
+            }
+
+            let quizSheetURL = '';
+            if (selectedClass.startsWith('Kelas XII')) quizSheetURL = quizURLs['Kelas XII'];
+            else if (selectedClass.startsWith('Kelas XI')) quizSheetURL = quizURLs['Kelas XI'];
+            else if (selectedClass.startsWith('Kelas X')) quizSheetURL = quizURLs['Kelas X'];
+
+            if (!quizSheetURL) { allElements.loadingStatus.textContent = "Bank soal tidak ditemukan."; return; }
+            
+            allQuestions = await fetchQuestionBank(quizSheetURL);
+             if (allQuestions.length > 0) {
+                displayClassAnalysis(submissionsForClass, allQuestions);
+            }
+            allElements.showClassAnalysisBtn.disabled = false;
+        }
+        
+        async function generateClassAnalysisSummary() {
+            const btn = allElements.generateSummaryBtn;
+            const contentDiv = allElements.aiSummaryContent;
+            const container = allElements.aiSummaryContainer;
+
+            btn.disabled = true;
+            contentDiv.innerHTML = '<p class="text-center">Menganalisis data dan membuat ringkasan...</p>';
+            container.classList.remove('hidden');
+
+            const difficultQuestions = classAnalysisData.questionDetails
+                .sort((a,b) => a.persentaseBenar - b.persentaseBenar)
+                .slice(0, 5);
+
+            const userQuery = `
+                Data Analisis:
+                - Kelas: ${classAnalysisData.className}
+                - Tipe Ujian: ${allElements.examTypeSelect.options[allElements.examTypeSelect.selectedIndex].text}
+                - Skor Rata-rata: ${classAnalysisData.averageScore}
+                - Jumlah Murid: ${classAnalysisData.studentCount}
+                - Detail Soal Paling Sulit (Nomor Soal, Teks, Persentase Benar): ${JSON.stringify(difficultQuestions)}
+            `;
+
+            const systemPrompt = `Anda adalah seorang guru Sejarah dan analis pendidikan yang berpengalaman. Berdasarkan data analisis jawaban kelas yang diberikan, buatlah ringkasan singkat dalam format poin-poin (gunakan tanda '*' untuk setiap poin). Ringkasan harus mencakup:
+1.  **Performa Umum Kelas:** Berikan komentar singkat tentang performa kelas secara keseluruhan berdasarkan skor rata-rata.
+2.  **Soal-Soal Paling Sulit:** Identifikasi soal-soal dengan persentase jawaban benar terendah dari data yang diberikan.
+3.  **Potensi Kesalahan Konsep:** Berdasarkan soal-soal sulit tersebut, berikan analisis kemungkinan kesalahan konsep atau materi yang belum dipahami oleh sebagian besar murid.
+4.  **Rekomendasi Tindak Lanjut:** Berikan saran konkret untuk guru, seperti topik mana yang perlu diulang.
+Gunakan bahasa Indonesia yang profesional dan mudah dimengerti.`;
+
+            const apiKey = ""; 
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-05-20:generateContent?key=${apiKey}`;
+            
+            const payload = {
+                contents: [{ parts: [{ text: userQuery }] }],
+                systemInstruction: { parts: [{ text: systemPrompt }] },
+            };
+
+            try {
+                const response = await fetch(apiUrl, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify(payload)
+                });
+                if (!response.ok) throw new Error(`API Error: ${response.status}`);
+                const result = await response.json();
+                
+                let text = result.candidates?.[0]?.content?.parts?.[0]?.text || "Tidak ada respons dari AI.";
+
+                text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
+                text = text.replace(/\*/g, '•');
+                contentDiv.innerHTML = `<div class="prose prose-sm max-w-none">${text.replace(/\n/g, '<br>')}</div>`;
+
+            } catch (error) {
+                console.error("Gemini API Error:", error);
+                contentDiv.innerHTML = `<p class="text-red-600">Terjadi kesalahan saat menghubungi AI. Silakan coba lagi nanti.</p>`;
+            } finally {
+                btn.disabled = false;
+            }
+        }
+
+
+        // --- EVENT LISTENERS & INISIALISASI ---
+        document.addEventListener('DOMContentLoaded', async () => {
+            await fetchTeacherCredentials();
         });
-        const j = await resp.json();
-        console.log("GAS response:", j);
-      } catch(err){
-        console.warn("Gagal kirim ke GAS:", err);
-      }
-    }
 
-    saveLocalLog(payload);
-    showConfirmation(payload.name || payload.raw || 'Siswa');
+        allElements.examTypeSelect.addEventListener('change', async () => {
+            const type = allElements.examTypeSelect.value;
+            allElements.classSelect.disabled = true;
+            allElements.analysisTypeSelection.classList.add('hidden');
+            allElements.studentAnalysisResultContainer.classList.add('hidden');
+            allElements.classAnalysisResultContainer.classList.add('hidden');
 
-    if(html5QrCode){
-      try{ html5QrCode.pause(); } catch(e){}
-      setTimeout(()=>{ try{ html5QrCode.resume(); } catch(e){} }, 1400);
-    }
-  }
+            if (type) {
+                const url = answerSheetURLs[type];
+                allSubmissions = await fetchSubmissions(url);
+                populateClassSelect();
+            }
+        });
 
-  function saveLocalLog(obj){
-    const arr = JSON.parse(localStorage.getItem(LOCAL_LOG_KEY) || "[]");
-    arr.unshift(obj);
-    while(arr.length>50) arr.pop();
-    localStorage.setItem(LOCAL_LOG_KEY, JSON.stringify(arr));
-    updateLocalLogView();
-  }
-  function updateLocalLogView(){
-    const arr = JSON.parse(localStorage.getItem(LOCAL_LOG_KEY) || "[]");
-    if(!arr.length){ localLog.innerText = "Belum ada absensi lokal"; return; }
-    localLog.innerHTML = arr.slice(0,6).map(it => {
-      const t = new Date(it.tanggal + ' ' + it.waktu).toLocaleString();
-      return `<div><strong>${it.name || it.id || '(tanpa nama)'}</strong> — <span class="small">${it.jenisSalat} • ${t}</span></div>`;
-    }).join('');
-  }
+        allElements.classSelect.addEventListener('change', () => {
+             allElements.studentSelect.disabled = true;
+             allElements.studentSelect.innerHTML = '<option value="">-- Pilih Murid --</option>';
+             allElements.showStudentAnalysisBtn.disabled = true;
+             allElements.studentAnalysisResultContainer.classList.add('hidden');
+             allElements.classAnalysisResultContainer.classList.add('hidden');
 
-  function showConfirmation(name){
-    confirmTitle.innerText = "Absensi Berhasil";
-    confirmText.innerText = `Absensi Berhasil untuk ${name}`;
-    overlay.classList.add('show');
-    overlay.setAttribute('aria-hidden','false');
-    beep();
-    setTimeout(()=>{ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); }, 2400);
-  }
-  closeOverlay.addEventListener('click', ()=>{ overlay.classList.remove('show'); overlay.setAttribute('aria-hidden','true'); });
+            if(allElements.classSelect.value) {
+                populateStudentSelect();
+                allElements.analysisTypeSelection.classList.remove('hidden');
+                allElements.studentSelect.disabled = false;
+            } else {
+                 allElements.analysisTypeSelection.classList.add('hidden');
+            }
+        });
 
-  function beep(){
-    try{
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      const o = ctx.createOscillator();
-      o.type = 'sine';
-      o.frequency.setValueAtTime(880, ctx.currentTime);
-      o.connect(ctx.destination);
-      o.start();
-      setTimeout(()=>{ o.stop(); ctx.close(); }, 120);
-    }catch(e){}
-  }
-</script>
+        allElements.studentSelect.addEventListener('change', () => {
+             allElements.showStudentAnalysisBtn.disabled = allElements.studentSelect.value === '';
+        });
+        
+        allElements.showStudentAnalysisBtn.addEventListener('click', onShowStudentAnalysis);
+        allElements.showClassAnalysisBtn.addEventListener('click', onShowClassAnalysis);
+        allElements.generateSummaryBtn.addEventListener('click', generateClassAnalysisSummary);
+        
+        allElements.submitLoginButton.addEventListener('click', handleLogin);
+        allElements.teacherPasswordInput.addEventListener('keyup', (event) => {
+             if (event.key === 'Enter') handleLogin();
+        });
+
+    </script>
 </body>
 </html>
+
